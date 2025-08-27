@@ -12,7 +12,7 @@ O objetivo é fornecer uma aplicação simples para que o usuário possa **criar
 # Frontend  
 - JavaScript (ES6+)  
 - HTML5 / CSS3  
-Código: [gestao-tarefas-frontend](https://github.com/mihawkx/gestao-tarefas-frontend)
+- Código: [gestao-tarefas-frontend](https://github.com/mihawkx/gestao-tarefas-frontend)
 
 ---
 
@@ -23,7 +23,7 @@ Código: [gestao-tarefas-frontend](https://github.com/mihawkx/gestao-tarefas-fro
 - PostgreSQL  
 - Maven  
 
-📌 Código: [gestao-tarefas-backend](https://github.com/mihawkx/gestao-tarefas-backend)
+- Código: [gestao-tarefas-backend](https://github.com/mihawkx/gestao-tarefas-backend)
 
 ---
 
