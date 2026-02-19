@@ -178,13 +178,34 @@ button:hover {
 }
 
 .task-card {
+  position: relative;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 0.9rem;
+  padding-bottom: 2.2rem;
   display: grid;
   gap: 0.55rem;
   box-shadow: 0 8px 24px var(--shadow-soft);
+  cursor: grab;
+}
+
+.task-card:active {
+  cursor: grabbing;
+}
+
+.task-card.is-dragging {
+  opacity: 0.55;
+}
+
+.task-card.drag-over-before {
+  border-color: var(--primary);
+  box-shadow: inset 4px 0 0 var(--primary), 0 8px 24px var(--shadow-soft);
+}
+
+.task-card.drag-over-after {
+  border-color: var(--primary);
+  box-shadow: inset -4px 0 0 var(--primary), 0 8px 24px var(--shadow-soft);
 }
 
 .task-card__title {
@@ -258,6 +279,24 @@ button:hover {
 
 .btn-delete {
   background: #dc2626;
+}
+
+.btn-delete-x {
+  position: absolute;
+  right: 0.55rem;
+  bottom: 0.5rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #dc2626;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.btn-delete-x:hover {
+  filter: none;
+  opacity: 0.8;
 }
 
 .empty-state {
