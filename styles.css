@@ -213,6 +213,27 @@ button:hover {
   font-size: 1.05rem;
 }
 
+.task-card.is-done {
+  opacity: 0.6;
+  filter: grayscale(50%);
+  border-style: dashed;
+  transition: opacity 0.2s, filter 0.2s;
+}
+
+.task-card.is-done:hover {
+  opacity: 0.85;
+  filter: grayscale(20%);
+}
+
+.task-card.is-done .task-card__title {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+
+.task-card.is-done .task-card__description {
+  text-decoration: line-through;
+}
+
 .task-card__description {
   margin: 0;
   color: var(--muted);

@@ -185,7 +185,7 @@ function renderTasks() {
 
   for (const task of visibleTasks) {
     const card = document.createElement("article");
-    card.className = "task-card";
+    card.className = "task-card" + (task.status === STATUS_DONE ? " is-done" : "");
     card.dataset.id = task.id;
     card.draggable = true;
 
@@ -199,10 +199,14 @@ function renderTasks() {
         <span class="status-pill ${statusClass}">${statusText}</span>
       </div>
       <div class="task-actions">
+        ${task.status === STATUS_DONE ? `
+        <button class="btn-status-pending" data-action="status" data-status="${STATUS_PENDING}" data-id="${task.id}">Restore</button>
+        ` : `
         <button class="btn-edit" data-action="edit" data-id="${task.id}">Edit</button>
         <button class="btn-status-pending" data-action="status" data-status="${STATUS_PENDING}" data-id="${task.id}">Pending</button>
         <button class="btn-status-progress" data-action="status" data-status="${STATUS_IN_PROGRESS}" data-id="${task.id}">In Progress</button>
         <button class="btn-status-done" data-action="status" data-status="${STATUS_DONE}" data-id="${task.id}">Done</button>
+        `}
       </div>
       <button class="btn-delete-x" data-action="delete" data-id="${task.id}" aria-label="Delete task">X</button>
     `;
@@ -215,11 +219,13 @@ function renderTasks() {
 }
 
 function getFilteredTasks() {
-  if (currentFilter === "all") {
-    return tasks;
-  }
+  const filtered = currentFilter === "all" ? tasks : tasks.filter((task) => task.status === currentFilter);
 
-  return tasks.filter((task) => task.status === currentFilter);
+  return [...filtered].sort((a, b) => {
+    if (a.status === STATUS_DONE && b.status !== STATUS_DONE) return 1;
+    if (a.status !== STATUS_DONE && b.status === STATUS_DONE) return -1;
+    return 0;
+  });
 }
 
 function updateFilterUI() {
