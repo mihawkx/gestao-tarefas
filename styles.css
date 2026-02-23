@@ -72,6 +72,12 @@ body {
   gap: 0.8rem;
 }
 
+.header-controls {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
 .app__header p {
   margin: 0.45rem 0 1.5rem;
   color: var(--muted);

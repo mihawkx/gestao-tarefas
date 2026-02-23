@@ -1,5 +1,77 @@
 const STORAGE_KEY = "task-manager-tasks";
 const THEME_KEY = "task-manager-theme";
+const LANG_KEY = "task-manager-lang";
+
+const TRANSLATIONS = {
+  en: {
+    appTitle: "Task Manager",
+    appDescription: "Manage your tasks with a simple card-based CRUD flow.",
+    createTask: "Create Task",
+    editTask: "Edit Task",
+    labelTitle: "Title",
+    labelDescription: "Description",
+    placeholderTitle: "Task title",
+    placeholderDescription: "What needs to be done?",
+    addTask: "Add Task",
+    saveChanges: "Save Changes",
+    cancelEdit: "Cancel Edit",
+    yourTasks: "Your Tasks",
+    filterAll: "All",
+    filterPending: "Pending",
+    filterInProgress: "In Progress",
+    filterDone: "Done",
+    emptyNoTasks: "No tasks yet. Add your first one above.",
+    emptyNoFilter: "No tasks for this filter.",
+    darkMode: "Dark Mode",
+    lightMode: "Light Mode",
+    langToggle: "PT-BR",
+    statusPending: "Pending",
+    statusInProgress: "In Progress",
+    statusDone: "Done",
+    noDescription: "No description",
+    restore: "Restore",
+    edit: "Edit",
+    deleteConfirm: "Are you sure you want to delete this task?",
+    deleteLabel: "Delete task",
+    taskFilters: "Task filters",
+  },
+  "pt-br": {
+    appTitle: "Gerenciador de Tarefas",
+    appDescription: "Gerencie suas tarefas com um fluxo simples baseado em cartões.",
+    createTask: "Criar Tarefa",
+    editTask: "Editar Tarefa",
+    labelTitle: "Título",
+    labelDescription: "Descrição",
+    placeholderTitle: "Título da tarefa",
+    placeholderDescription: "O que precisa ser feito?",
+    addTask: "Adicionar Tarefa",
+    saveChanges: "Salvar Alterações",
+    cancelEdit: "Cancelar Edição",
+    yourTasks: "Suas Tarefas",
+    filterAll: "Todas",
+    filterPending: "Pendente",
+    filterInProgress: "Em Andamento",
+    filterDone: "Concluída",
+    emptyNoTasks: "Nenhuma tarefa ainda. Adicione a primeira acima.",
+    emptyNoFilter: "Nenhuma tarefa para este filtro.",
+    darkMode: "Modo Escuro",
+    lightMode: "Modo Claro",
+    langToggle: "EN",
+    statusPending: "Pendente",
+    statusInProgress: "Em Andamento",
+    statusDone: "Concluída",
+    noDescription: "Sem descrição",
+    restore: "Restaurar",
+    edit: "Editar",
+    deleteConfirm: "Tem certeza que deseja excluir esta tarefa?",
+    deleteLabel: "Excluir tarefa",
+    taskFilters: "Filtros de tarefa",
+  },
+};
+
+function t(key) {
+  return (TRANSLATIONS[currentLang] ?? TRANSLATIONS.en)[key] ?? key;
+}
 
 const STATUS_PENDING = "pending";
 const STATUS_IN_PROGRESS = "in-progress";
@@ -16,16 +88,17 @@ const taskList = document.getElementById("task-list");
 const emptyState = document.getElementById("empty-state");
 const filtersContainer = document.getElementById("filters");
 const themeToggleButton = document.getElementById("theme-toggle");
+const langToggleButton = document.getElementById("lang-toggle");
 
 let tasks = loadTasks();
 let editingTaskId = null;
 let currentFilter = "all";
 let currentTheme = loadTheme();
+let currentLang = loadLang();
 let draggedTaskId = null;
 
 applyTheme(currentTheme);
-
-renderTasks();
+applyLanguage(currentLang);
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -81,7 +154,7 @@ taskList.addEventListener("click", (event) => {
   }
 
   if (action === "delete") {
-    const confirmed = window.confirm("Are you sure you want to delete this task?");
+    const confirmed = window.confirm(t("deleteConfirm"));
 
     if (confirmed) {
       deleteTask(id);
@@ -169,6 +242,12 @@ themeToggleButton.addEventListener("click", () => {
   saveTheme(currentTheme);
 });
 
+langToggleButton.addEventListener("click", () => {
+  const newLang = currentLang === "en" ? "pt-br" : "en";
+  applyLanguage(newLang);
+  saveLang(newLang);
+});
+
 function renderTasks() {
   taskList.innerHTML = "";
   updateFilterUI();
@@ -177,7 +256,7 @@ function renderTasks() {
 
   if (visibleTasks.length === 0) {
     emptyState.classList.remove("hidden");
-    emptyState.textContent = tasks.length === 0 ? "No tasks yet. Add your first one above." : "No tasks for this filter.";
+    emptyState.textContent = tasks.length === 0 ? t("emptyNoTasks") : t("emptyNoFilter");
     return;
   }
 
@@ -200,19 +279,19 @@ function renderTasks() {
       </div>
       <div class="task-actions">
         ${task.status === STATUS_DONE ? `
-        <button class="btn-status-pending" data-action="status" data-status="${STATUS_PENDING}" data-id="${task.id}">Restore</button>
+        <button class="btn-status-pending" data-action="status" data-status="${STATUS_PENDING}" data-id="${task.id}">${t("restore")}</button>
         ` : `
-        <button class="btn-edit" data-action="edit" data-id="${task.id}">Edit</button>
-        <button class="btn-status-pending" data-action="status" data-status="${STATUS_PENDING}" data-id="${task.id}">Pending</button>
-        <button class="btn-status-progress" data-action="status" data-status="${STATUS_IN_PROGRESS}" data-id="${task.id}">In Progress</button>
-        <button class="btn-status-done" data-action="status" data-status="${STATUS_DONE}" data-id="${task.id}">Done</button>
+        <button class="btn-edit" data-action="edit" data-id="${task.id}">${t("edit")}</button>
+        <button class="btn-status-pending" data-action="status" data-status="${STATUS_PENDING}" data-id="${task.id}">${t("statusPending")}</button>
+        <button class="btn-status-progress" data-action="status" data-status="${STATUS_IN_PROGRESS}" data-id="${task.id}">${t("statusInProgress")}</button>
+        <button class="btn-status-done" data-action="status" data-status="${STATUS_DONE}" data-id="${task.id}">${t("statusDone")}</button>
         `}
       </div>
-      <button class="btn-delete-x" data-action="delete" data-id="${task.id}" aria-label="Delete task">&times;</button>
+      <button class="btn-delete-x" data-action="delete" data-id="${task.id}" aria-label="${t("deleteLabel")}">&times;</button>
     `;
 
     card.querySelector(".task-card__title").textContent = task.title;
-    card.querySelector(".task-card__description").textContent = task.description || "No description";
+    card.querySelector(".task-card__description").textContent = task.description || t("noDescription");
 
     taskList.append(card);
   }
@@ -238,15 +317,9 @@ function updateFilterUI() {
 }
 
 function getStatusLabel(status) {
-  if (status === STATUS_DONE) {
-    return "Done";
-  }
-
-  if (status === STATUS_IN_PROGRESS) {
-    return "In Progress";
-  }
-
-  return "Pending";
+  if (status === STATUS_DONE) return t("statusDone");
+  if (status === STATUS_IN_PROGRESS) return t("statusInProgress");
+  return t("statusPending");
 }
 
 function startEditTask(taskId) {
@@ -261,8 +334,8 @@ function startEditTask(taskId) {
   titleInput.value = task.title;
   descriptionInput.value = task.description;
 
-  formTitle.textContent = "Edit Task";
-  saveButton.textContent = "Save Changes";
+  formTitle.textContent = t("editTask");
+  saveButton.textContent = t("saveChanges");
   cancelButton.hidden = false;
   titleInput.focus();
 }
@@ -361,8 +434,8 @@ function resetForm() {
   taskIdInput.value = "";
   form.reset();
 
-  formTitle.textContent = "Create Task";
-  saveButton.textContent = "Add Task";
+  formTitle.textContent = t("createTask");
+  saveButton.textContent = t("addTask");
   cancelButton.hidden = true;
 }
 
@@ -372,7 +445,7 @@ function saveTasks() {
 
 function applyTheme(theme) {
   document.body.dataset.theme = theme;
-  themeToggleButton.textContent = theme === "dark" ? "Light Mode" : "Dark Mode";
+  themeToggleButton.textContent = theme === "dark" ? t("lightMode") : t("darkMode");
 }
 
 function saveTheme(theme) {
@@ -387,6 +460,49 @@ function loadTheme() {
   }
 
   return "dark";
+}
+
+function applyLanguage(lang) {
+  currentLang = lang;
+  document.documentElement.lang = lang === "pt-br" ? "pt-BR" : "en";
+  document.title = t("appTitle");
+
+  document.querySelector(".app__header h1").textContent = t("appTitle");
+  document.querySelector(".app__header p").textContent = t("appDescription");
+  document.querySelector("label[for='title']").textContent = t("labelTitle");
+  document.querySelector("label[for='description']").textContent = t("labelDescription");
+  titleInput.placeholder = t("placeholderTitle");
+  descriptionInput.placeholder = t("placeholderDescription");
+  document.querySelector(".tasks-header-row h2").textContent = t("yourTasks");
+  filtersContainer.setAttribute("aria-label", t("taskFilters"));
+
+  const filterMap = { all: "filterAll", pending: "filterPending", "in-progress": "filterInProgress", done: "filterDone" };
+  filtersContainer.querySelectorAll("button[data-filter]").forEach((btn) => {
+    btn.textContent = t(filterMap[btn.dataset.filter]);
+  });
+
+  if (editingTaskId) {
+    formTitle.textContent = t("editTask");
+    saveButton.textContent = t("saveChanges");
+  } else {
+    formTitle.textContent = t("createTask");
+    saveButton.textContent = t("addTask");
+  }
+  cancelButton.textContent = t("cancelEdit");
+
+  applyTheme(currentTheme);
+  langToggleButton.textContent = t("langToggle");
+
+  renderTasks();
+}
+
+function saveLang(lang) {
+  localStorage.setItem(LANG_KEY, lang);
+}
+
+function loadLang() {
+  const saved = localStorage.getItem(LANG_KEY);
+  return saved === "en" ? "en" : "pt-br";
 }
 
 function loadTasks() {
