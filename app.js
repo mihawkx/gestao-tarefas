@@ -208,7 +208,7 @@ function renderTasks() {
         <button class="btn-status-done" data-action="status" data-status="${STATUS_DONE}" data-id="${task.id}">Done</button>
         `}
       </div>
-      <button class="btn-delete-x" data-action="delete" data-id="${task.id}" aria-label="Delete task">X</button>
+      <button class="btn-delete-x" data-action="delete" data-id="${task.id}" aria-label="Delete task">&times;</button>
     `;
 
     card.querySelector(".task-card__title").textContent = task.title;

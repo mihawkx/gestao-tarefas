@@ -304,20 +304,30 @@ button:hover {
 
 .btn-delete-x {
   position: absolute;
-  right: 0.55rem;
-  bottom: 0.5rem;
+  right: 0.6rem;
+  bottom: 0.6rem;
   padding: 0;
-  border: none;
+  width: 1.65rem;
+  height: 1.65rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #dc2626;
+  border-radius: 6px;
   background: transparent;
   color: #dc2626;
-  font-size: 0.95rem;
+  font-size: 0.8rem;
   font-weight: 700;
   line-height: 1;
+  opacity: 0.7;
+  transition: background 0.15s, opacity 0.15s;
 }
 
 .btn-delete-x:hover {
   filter: none;
-  opacity: 0.8;
+  background: #dc2626;
+  color: #fff;
+  opacity: 1;
 }
 
 .empty-state {
