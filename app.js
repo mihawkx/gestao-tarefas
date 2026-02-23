@@ -386,7 +386,7 @@ function loadTheme() {
     return savedTheme;
   }
 
-  return "light";
+  return "dark";
 }
 
 function loadTasks() {
