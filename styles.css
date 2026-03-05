@@ -219,6 +219,9 @@ button:hover {
   margin: 0;
   font-size: 1.05rem;
   padding-right: 2rem;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  min-width: 0;
 }
 
 .task-card.is-done {
