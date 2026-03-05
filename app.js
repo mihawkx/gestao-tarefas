@@ -2,6 +2,7 @@ const STORAGE_KEY = "task-manager-tasks";
 const THEME_KEY = "task-manager-theme";
 const LANG_KEY = "task-manager-lang";
 
+// i18n string table — add a new locale object here to support additional languages
 const TRANSLATIONS = {
   en: {
     appTitle: "Task Manager",
@@ -85,6 +86,7 @@ const TRANSLATIONS = {
   },
 };
 
+// Falls back to English, then to the raw key itself if the translation is missing
 function t(key) {
   return (TRANSLATIONS[currentLang] ?? TRANSLATIONS.en)[key] ?? key;
 }
@@ -105,6 +107,7 @@ const FILTER_KEY_MAP = {
   done: "filterDone",
 };
 
+// ─── DOM References ────────────────────────────────────────────────────────
 const form = document.getElementById("task-form");
 const formTitle = document.getElementById("form-title");
 const taskIdInput = document.getElementById("task-id");
@@ -122,15 +125,18 @@ const dueDateInput = document.getElementById("due-date");
 const searchInput = document.getElementById("search-input");
 
 let tasks = loadTasks();
-let editingTaskId = null;
+let editingTaskId = null; // id of the task currently in the form, or null when creating
 let currentFilter = "all";
 let currentSearch = "";
 let currentTheme = loadTheme();
 let currentLang = loadLang();
-let draggedTaskId = null;
+let draggedTaskId = null; // set on dragstart, cleared on dragend
 
+// applyLanguage triggers the initial renderTasks() call
 applyTheme(currentTheme);
 applyLanguage(currentLang);
+
+// ─── Event Listeners ────────────────────────────────────────────────────────
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -172,6 +178,7 @@ cancelButton.addEventListener("click", () => {
   resetForm();
 });
 
+// Delegated: avoids re-attaching listeners to every button on each render
 taskList.addEventListener("click", (event) => {
   const targetButton = event.target.closest("button[data-action]");
 
@@ -347,6 +354,10 @@ function renderTasks() {
   }
 }
 
+/**
+ * Returns a filtered and sorted subset of tasks based on the active filter and search query.
+ * Done tasks are always pushed to the bottom; within groups, tasks are sorted by priority.
+ */
 function getFilteredTasks() {
   let filtered = currentFilter === "all" ? tasks : tasks.filter((task) => task.status === currentFilter);
 
@@ -395,6 +406,7 @@ function getStatusLabel(status) {
   return t("statusPending");
 }
 
+// Returns "" for PRIORITY_NONE so no badge element is rendered
 function getPriorityLabel(priority) {
   if (priority === PRIORITY_HIGH) return t("priorityHigh");
   if (priority === PRIORITY_MEDIUM) return t("priorityMedium");
@@ -402,6 +414,10 @@ function getPriorityLabel(priority) {
   return "";
 }
 
+/**
+ * Formats an ISO date string ("YYYY-MM-DD") into a locale-aware short date.
+ * Using the Date constructor with numeric parts avoids timezone-offset issues.
+ */
 function formatDate(dateStr) {
   if (!dateStr) return "";
   const [year, month, day] = dateStr.split("-").map(Number);
@@ -413,6 +429,9 @@ function formatDate(dateStr) {
   });
 }
 
+// ─── CRUD Operations ─────────────────────────────────────────────────────────
+
+// Sets editingTaskId so the form submit handler updates instead of creating a new task
 function startEditTask(taskId) {
   const task = tasks.find((item) => item.id === taskId);
 
@@ -449,6 +468,7 @@ function updateTask(taskId, updates) {
   renderTasks();
 }
 
+// Guard against invalid status values coming from tampered data attributes
 function setTaskStatus(taskId, status) {
   if (![STATUS_PENDING, STATUS_IN_PROGRESS, STATUS_DONE].includes(status)) {
     return;
@@ -480,6 +500,10 @@ function deleteTask(taskId) {
   renderTasks();
 }
 
+/**
+ * Moves the dragged task to a position immediately before or after the target task.
+ * The target index is re-queried after removal because splicing shifts indices.
+ */
 function moveTaskRelativeToTarget(draggedId, targetId, dropAfter) {
   const draggedIndex = tasks.findIndex((task) => task.id === draggedId);
   const originalTargetIndex = tasks.findIndex((task) => task.id === targetId);
@@ -489,6 +513,7 @@ function moveTaskRelativeToTarget(draggedId, targetId, dropAfter) {
   }
 
   const [draggedTask] = tasks.splice(draggedIndex, 1);
+  // Re-find the target after the splice since indices may have shifted
   const targetIndex = tasks.findIndex((task) => task.id === targetId);
   const destinationIndex = dropAfter ? targetIndex + 1 : targetIndex;
 
@@ -508,6 +533,10 @@ function clearDragState() {
   }
 }
 
+/**
+ * Determines whether the dragged card should be inserted after (vs. before) the target.
+ * Compares cursor offset from the card's centre on both axes and uses the dominant axis.
+ */
 function shouldDropAfterTarget(event, targetCard) {
   const rect = targetCard.getBoundingClientRect();
   const centerX = rect.left + rect.width / 2;
@@ -515,6 +544,7 @@ function shouldDropAfterTarget(event, targetCard) {
   const distanceX = event.clientX - centerX;
   const distanceY = event.clientY - centerY;
 
+  // Use horizontal axis when the cursor is further left/right than up/down
   if (Math.abs(distanceX) >= Math.abs(distanceY)) {
     return distanceX > 0;
   }
@@ -534,10 +564,13 @@ function resetForm() {
   cancelButton.hidden = true;
 }
 
+// ─── Persistence ─────────────────────────────────────────────────────────────
+
 function saveTasks() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
 }
 
+// Sets data-theme on <body>; all visual changes are handled by CSS
 function applyTheme(theme) {
   document.body.dataset.theme = theme;
   themeToggleButton.textContent = theme === "dark" ? t("lightMode") : t("darkMode");
@@ -557,6 +590,10 @@ function loadTheme() {
   return "dark";
 }
 
+/**
+ * Switches the active language, updates all static text nodes in the DOM,
+ * and triggers a full re-render so dynamic content is also retranslated.
+ */
 function applyLanguage(lang) {
   currentLang = lang;
   document.documentElement.lang = lang === "pt-br" ? "pt-BR" : "en";
@@ -602,6 +639,11 @@ function loadLang() {
   return saved === "en" ? "en" : "pt-br";
 }
 
+/**
+ * Reads and parses the task list from localStorage.
+ * Each raw object is passed through normalizeTask() to ensure a consistent shape.
+ * Returns an empty array on missing data, parse errors, or non-array payloads.
+ */
 function loadTasks() {
   const raw = localStorage.getItem(STORAGE_KEY);
 
@@ -622,6 +664,11 @@ function loadTasks() {
   }
 }
 
+/**
+ * Ensures a raw task object has all required fields with valid types.
+ * Also handles migration from an older schema that used a boolean `completed` field.
+ * Returns null for completely invalid entries so they can be filtered out.
+ */
 function normalizeTask(task) {
   if (!task || typeof task !== "object") {
     return null;
@@ -642,6 +689,12 @@ function normalizeTask(task) {
   };
 }
 
+/**
+ * Resolves a valid status string from raw data.
+ * If `status` is already valid, it is used as-is.
+ * If not, falls back to the legacy `completed` boolean (true → done, false → pending).
+ * Defaults to pending when neither field is usable.
+ */
 function normalizeStatus(status, completed) {
   if ([STATUS_PENDING, STATUS_IN_PROGRESS, STATUS_DONE].includes(status)) {
     return status;
