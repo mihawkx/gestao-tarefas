@@ -32,7 +32,9 @@ const TRANSLATIONS = {
     noDescription: "No description",
     restore: "Restore",
     edit: "Edit",
-    deleteConfirm: "Are you sure you want to delete this task?",
+    deleteConfirm: "Delete this task?",
+    deleteCancel: "Cancel",
+    deleteConfirmBtn: "Delete",
     deleteLabel: "Delete task",
     taskFilters: "Task filters",
     labelPriority: "Priority",
@@ -72,7 +74,9 @@ const TRANSLATIONS = {
     noDescription: "Sem descrição",
     restore: "Restaurar",
     edit: "Editar",
-    deleteConfirm: "Tem certeza que deseja excluir esta tarefa?",
+    deleteConfirm: "Excluir esta tarefa?",
+    deleteCancel: "Cancelar",
+    deleteConfirmBtn: "Excluir",
     deleteLabel: "Excluir tarefa",
     taskFilters: "Filtros de tarefa",
     labelPriority: "Prioridade",
@@ -197,12 +201,18 @@ taskList.addEventListener("click", (event) => {
     setTaskStatus(id, status);
   }
 
-  if (action === "delete") {
-    const confirmed = window.confirm(t("deleteConfirm"));
+  if (action === "delete-ask") {
+    const card = targetButton.closest(".task-card");
+    card.classList.add("is-confirming-delete");
+  }
 
-    if (confirmed) {
-      deleteTask(id);
-    }
+  if (action === "delete-cancel") {
+    const card = targetButton.closest(".task-card");
+    card.classList.remove("is-confirming-delete");
+  }
+
+  if (action === "delete-confirm") {
+    deleteTask(id);
   }
 });
 
@@ -344,7 +354,12 @@ function renderTasks() {
         <button class="btn-status-done" data-action="status" data-status="${STATUS_DONE}" data-id="${task.id}">${t("statusDone")}</button>
         `}
       </div>
-      <button class="btn-delete-x" data-action="delete" data-id="${task.id}" aria-label="${t("deleteLabel")}">&times;</button>
+      <button class="btn-delete-x" data-action="delete-ask" data-id="${task.id}" aria-label="${t("deleteLabel")}">&times;</button>
+      <div class="delete-confirm-strip">
+        <span>${t("deleteConfirm")}</span>
+        <button class="btn-delete-cancel" data-action="delete-cancel" data-id="${task.id}">${t("deleteCancel")}</button>
+        <button class="btn-delete-confirm" data-action="delete-confirm" data-id="${task.id}">${t("deleteConfirmBtn")}</button>
+      </div>
     `;
 
     card.querySelector(".task-card__title").textContent = task.title;

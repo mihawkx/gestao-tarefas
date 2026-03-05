@@ -332,6 +332,45 @@ button:hover {
   opacity: 1;
 }
 
+/* Inline delete confirmation strip */
+.delete-confirm-strip {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.65rem;
+  background: color-mix(in srgb, #dc2626 10%, transparent);
+  border: 1px solid color-mix(in srgb, #dc2626 30%, transparent);
+  border-radius: 10px;
+  font-size: 0.85rem;
+}
+
+.delete-confirm-strip span {
+  flex: 1;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.task-card.is-confirming-delete .delete-confirm-strip {
+  display: flex;
+}
+
+.task-card.is-confirming-delete .btn-delete-x {
+  display: none;
+}
+
+.btn-delete-cancel {
+  background: var(--secondary-bg);
+  color: var(--secondary-text);
+  padding: 0.3rem 0.65rem;
+  font-size: 0.82rem;
+}
+
+.btn-delete-confirm {
+  background: #dc2626;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.82rem;
+}
+
 .empty-state {
   color: var(--muted);
   margin-top: 0.7rem;
