@@ -27,6 +27,14 @@
           <label for="title">Title</label>
           <input id="title" name="title" type="text" maxlength="80" placeholder="Task title" required />
 
+          <label for="priority">Priority</label>
+          <select id="priority" name="priority">
+            <option value="none">None</option>
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+          </select>
+
           <label for="description">Description</label>
           <textarea
             id="description"
@@ -35,6 +43,9 @@
             maxlength="240"
             placeholder="What needs to be done?"
           ></textarea>
+
+          <label for="due-date">Due Date</label>
+          <input id="due-date" name="due-date" type="date" />
 
           <div class="form-actions">
             <button type="submit" id="save-btn">Add Task</button>
@@ -52,6 +63,9 @@
             <button type="button" class="filter-btn" data-filter="in-progress">In Progress</button>
             <button type="button" class="filter-btn" data-filter="done">Done</button>
           </div>
+        </div>
+        <div class="search-bar">
+          <input id="search-input" type="search" placeholder="Search tasks…" aria-label="Search tasks" />
         </div>
         <div id="empty-state" class="empty-state">No tasks yet. Add your first one above.</div>
         <div id="task-list" class="task-grid"></div>

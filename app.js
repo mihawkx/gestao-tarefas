@@ -34,6 +34,14 @@ const TRANSLATIONS = {
     deleteConfirm: "Are you sure you want to delete this task?",
     deleteLabel: "Delete task",
     taskFilters: "Task filters",
+    labelPriority: "Priority",
+    priorityNone: "None",
+    priorityLow: "Low",
+    priorityMedium: "Medium",
+    priorityHigh: "High",
+    labelDueDate: "Due Date",
+    overdue: "Overdue",
+    searchPlaceholder: "Search tasks\u2026",
   },
   "pt-br": {
     appTitle: "Gerenciador de Tarefas",
@@ -66,6 +74,14 @@ const TRANSLATIONS = {
     deleteConfirm: "Tem certeza que deseja excluir esta tarefa?",
     deleteLabel: "Excluir tarefa",
     taskFilters: "Filtros de tarefa",
+    labelPriority: "Prioridade",
+    priorityNone: "Nenhuma",
+    priorityLow: "Baixa",
+    priorityMedium: "M\u00e9dia",
+    priorityHigh: "Alta",
+    labelDueDate: "Data Limite",
+    overdue: "Atrasada",
+    searchPlaceholder: "Buscar tarefas\u2026",
   },
 };
 
@@ -76,6 +92,18 @@ function t(key) {
 const STATUS_PENDING = "pending";
 const STATUS_IN_PROGRESS = "in-progress";
 const STATUS_DONE = "done";
+
+const PRIORITY_HIGH = "high";
+const PRIORITY_MEDIUM = "medium";
+const PRIORITY_LOW = "low";
+const PRIORITY_NONE = "none";
+
+const FILTER_KEY_MAP = {
+  all: "filterAll",
+  pending: "filterPending",
+  "in-progress": "filterInProgress",
+  done: "filterDone",
+};
 
 const form = document.getElementById("task-form");
 const formTitle = document.getElementById("form-title");
@@ -89,10 +117,14 @@ const emptyState = document.getElementById("empty-state");
 const filtersContainer = document.getElementById("filters");
 const themeToggleButton = document.getElementById("theme-toggle");
 const langToggleButton = document.getElementById("lang-toggle");
+const prioritySelect = document.getElementById("priority");
+const dueDateInput = document.getElementById("due-date");
+const searchInput = document.getElementById("search-input");
 
 let tasks = loadTasks();
 let editingTaskId = null;
 let currentFilter = "all";
+let currentSearch = "";
 let currentTheme = loadTheme();
 let currentLang = loadLang();
 let draggedTaskId = null;
@@ -111,14 +143,19 @@ form.addEventListener("submit", (event) => {
     return;
   }
 
+  const priority = prioritySelect.value || PRIORITY_NONE;
+  const dueDate = dueDateInput.value || "";
+
   if (editingTaskId) {
-    updateTask(editingTaskId, { title, description });
+    updateTask(editingTaskId, { title, description, priority, dueDate });
     resetForm();
   } else {
     const newTask = {
       id: crypto.randomUUID(),
       title,
       description,
+      priority,
+      dueDate,
       status: STATUS_PENDING,
       createdAt: Date.now(),
     };
@@ -248,6 +285,11 @@ langToggleButton.addEventListener("click", () => {
   saveLang(newLang);
 });
 
+searchInput.addEventListener("input", () => {
+  currentSearch = searchInput.value.trim().toLowerCase();
+  renderTasks();
+});
+
 function renderTasks() {
   taskList.innerHTML = "";
   updateFilterUI();
@@ -264,26 +306,34 @@ function renderTasks() {
 
   for (const task of visibleTasks) {
     const card = document.createElement("article");
-    card.className = "task-card" + (task.status === STATUS_DONE ? " is-done" : "");
+    const today = new Date().toISOString().split("T")[0];
+    const isOverdue = task.dueDate && task.dueDate < today && task.status !== STATUS_DONE;
+    card.className = "task-card" + (task.status === STATUS_DONE ? " is-done" : "") + (isOverdue ? " is-overdue" : "");
     card.dataset.id = task.id;
     card.draggable = true;
 
     const statusClass = `status-pill--${task.status}`;
     const statusText = getStatusLabel(task.status);
+    const priorityText = getPriorityLabel(task.priority);
 
     card.innerHTML = `
       <h3 class="task-card__title"></h3>
       <p class="task-card__description"></p>
       <div class="task-meta">
+        ${priorityText ? `<span class="priority-badge priority-badge--${task.priority}">${priorityText}</span>` : ""}
         <span class="status-pill ${statusClass}">${statusText}</span>
+        ${task.dueDate ? `<span class="due-label${isOverdue ? " is-overdue" : ""}">${isOverdue ? t("overdue") + " \u00b7 " : ""}${formatDate(task.dueDate)}</span>` : ""}
       </div>
       <div class="task-actions">
         ${task.status === STATUS_DONE ? `
         <button class="btn-status-pending" data-action="status" data-status="${STATUS_PENDING}" data-id="${task.id}">${t("restore")}</button>
         ` : `
         <button class="btn-edit" data-action="edit" data-id="${task.id}">${t("edit")}</button>
-        <button class="btn-status-pending" data-action="status" data-status="${STATUS_PENDING}" data-id="${task.id}">${t("statusPending")}</button>
+        ${task.status === STATUS_PENDING ? `
         <button class="btn-status-progress" data-action="status" data-status="${STATUS_IN_PROGRESS}" data-id="${task.id}">${t("statusInProgress")}</button>
+        ` : `
+        <button class="btn-status-pending" data-action="status" data-status="${STATUS_PENDING}" data-id="${task.id}">${t("statusPending")}</button>
+        `}
         <button class="btn-status-done" data-action="status" data-status="${STATUS_DONE}" data-id="${task.id}">${t("statusDone")}</button>
         `}
       </div>
@@ -298,21 +348,44 @@ function renderTasks() {
 }
 
 function getFilteredTasks() {
-  const filtered = currentFilter === "all" ? tasks : tasks.filter((task) => task.status === currentFilter);
+  let filtered = currentFilter === "all" ? tasks : tasks.filter((task) => task.status === currentFilter);
+
+  if (currentSearch) {
+    filtered = filtered.filter(
+      (task) =>
+        task.title.toLowerCase().includes(currentSearch) ||
+        (task.description && task.description.toLowerCase().includes(currentSearch))
+    );
+  }
+
+  const priorityOrder = { [PRIORITY_HIGH]: 0, [PRIORITY_MEDIUM]: 1, [PRIORITY_LOW]: 2, [PRIORITY_NONE]: 3 };
 
   return [...filtered].sort((a, b) => {
     if (a.status === STATUS_DONE && b.status !== STATUS_DONE) return 1;
     if (a.status !== STATUS_DONE && b.status === STATUS_DONE) return -1;
+    const pa = priorityOrder[a.priority] ?? 3;
+    const pb = priorityOrder[b.priority] ?? 3;
+    if (pa !== pb) return pa - pb;
     return 0;
   });
 }
 
 function updateFilterUI() {
+  const counts = {
+    all: tasks.length,
+    pending: tasks.filter((task) => task.status === STATUS_PENDING).length,
+    "in-progress": tasks.filter((task) => task.status === STATUS_IN_PROGRESS).length,
+    done: tasks.filter((task) => task.status === STATUS_DONE).length,
+  };
+
   const filterButtons = filtersContainer.querySelectorAll("button[data-filter]");
 
   for (const button of filterButtons) {
     const isActive = button.dataset.filter === currentFilter;
     button.classList.toggle("is-active", isActive);
+    const label = t(FILTER_KEY_MAP[button.dataset.filter]);
+    const count = counts[button.dataset.filter];
+    button.innerHTML = `${label} <span class="filter-count">${count}</span>`;
   }
 }
 
@@ -320,6 +393,24 @@ function getStatusLabel(status) {
   if (status === STATUS_DONE) return t("statusDone");
   if (status === STATUS_IN_PROGRESS) return t("statusInProgress");
   return t("statusPending");
+}
+
+function getPriorityLabel(priority) {
+  if (priority === PRIORITY_HIGH) return t("priorityHigh");
+  if (priority === PRIORITY_MEDIUM) return t("priorityMedium");
+  if (priority === PRIORITY_LOW) return t("priorityLow");
+  return "";
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return "";
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+  return date.toLocaleDateString(currentLang === "pt-br" ? "pt-BR" : "en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
 function startEditTask(taskId) {
@@ -333,6 +424,8 @@ function startEditTask(taskId) {
   taskIdInput.value = task.id;
   titleInput.value = task.title;
   descriptionInput.value = task.description;
+  prioritySelect.value = task.priority || PRIORITY_NONE;
+  dueDateInput.value = task.dueDate || "";
 
   formTitle.textContent = t("editTask");
   saveButton.textContent = t("saveChanges");
@@ -433,6 +526,8 @@ function resetForm() {
   editingTaskId = null;
   taskIdInput.value = "";
   form.reset();
+  prioritySelect.value = PRIORITY_NONE;
+  dueDateInput.value = "";
 
   formTitle.textContent = t("createTask");
   saveButton.textContent = t("addTask");
@@ -471,15 +566,17 @@ function applyLanguage(lang) {
   document.querySelector(".app__header p").textContent = t("appDescription");
   document.querySelector("label[for='title']").textContent = t("labelTitle");
   document.querySelector("label[for='description']").textContent = t("labelDescription");
+  document.querySelector("label[for='priority']").textContent = t("labelPriority");
+  document.querySelector("label[for='due-date']").textContent = t("labelDueDate");
   titleInput.placeholder = t("placeholderTitle");
   descriptionInput.placeholder = t("placeholderDescription");
+  searchInput.placeholder = t("searchPlaceholder");
+  prioritySelect.querySelector(`option[value="none"]`).textContent = t("priorityNone");
+  prioritySelect.querySelector(`option[value="low"]`).textContent = t("priorityLow");
+  prioritySelect.querySelector(`option[value="medium"]`).textContent = t("priorityMedium");
+  prioritySelect.querySelector(`option[value="high"]`).textContent = t("priorityHigh");
   document.querySelector(".tasks-header-row h2").textContent = t("yourTasks");
   filtersContainer.setAttribute("aria-label", t("taskFilters"));
-
-  const filterMap = { all: "filterAll", pending: "filterPending", "in-progress": "filterInProgress", done: "filterDone" };
-  filtersContainer.querySelectorAll("button[data-filter]").forEach((btn) => {
-    btn.textContent = t(filterMap[btn.dataset.filter]);
-  });
 
   if (editingTaskId) {
     formTitle.textContent = t("editTask");
@@ -537,6 +634,10 @@ function normalizeTask(task) {
     title: typeof task.title === "string" ? task.title : "Untitled task",
     description: typeof task.description === "string" ? task.description : "",
     status: normalizedStatus,
+    priority: [PRIORITY_HIGH, PRIORITY_MEDIUM, PRIORITY_LOW, PRIORITY_NONE].includes(task.priority)
+      ? task.priority
+      : PRIORITY_NONE,
+    dueDate: typeof task.dueDate === "string" ? task.dueDate : "",
     createdAt: typeof task.createdAt === "number" ? task.createdAt : Date.now(),
   };
 }
