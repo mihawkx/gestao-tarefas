@@ -1,67 +1,71 @@
-# Task Manager
+# Gerenciador de Tarefas
 
-🇧🇷 Leia em português: [README.pt-BR.md](README.pt-BR.md)
+🇺🇸 Read in English: [README.en.md](README.en.md)
 
-A responsive, full-featured task management web app built with **vanilla HTML, CSS, and JavaScript** — no frameworks, no dependencies.
+Aplicativo web responsivo de gerenciamento de tarefas, feito com **HTML, CSS e JavaScript puros** (sem frameworks e sem dependencias externas).
 
-## Features
+## Funcionalidades
 
-- **Full CRUD** — create, read, update, and delete tasks
-- **Task priority** — mark tasks as High, Medium, or Low priority, with colored badges and automatic sort (high priority tasks surface first)
-- **Due dates** — set deadlines per task; overdue tasks are visually flagged with a red indicator
-- **Live search** — instantly filter tasks by title or description as you type
-- **Status workflow** — move tasks between Pending → In Progress → Done
-- **Status filters** — view all tasks or filter by status; each filter shows a live count badge
-- **Drag-and-drop reorder** — rearrange cards by dragging them on desktop
-- **Light / Dark mode** — theme persists across sessions via `localStorage`
-- **Bilingual UI** — full English and Brazilian Portuguese support, toggled at runtime
-- **Persistent data** — all tasks, theme, and language preference are saved to `localStorage`
-- **Accessible markup** — semantic HTML5 elements, ARIA labels, and keyboard-navigable controls
+- **CRUD completo**: criar, listar, editar e excluir tarefas
+- **Prioridade por tarefa**: Nenhuma, Baixa, Media e Alta, com badges e ordenacao automatica
+- **Data limite**: definicao de prazo por tarefa, com destaque visual para tarefas atrasadas
+- **Busca em tempo real**: filtro instantaneo por titulo ou descricao
+- **Fluxo de status**: Pendente, Em Andamento e Concluida, incluindo restauracao de tarefa concluida para pendente
+- **Filtros por status com contador**: Todas, Pendente, Em Andamento e Concluida com contagem dinamica
+- **Reordenacao por arrastar e soltar**: reorganizacao de cards no desktop
+- **Tema Claro/Escuro**: alternancia de tema com persistencia no `localStorage`
+- **Interface bilingue**: alternancia entre Portugues (pt-BR) e Ingles (en)
+- **Persistencia local**: tarefas, tema e idioma salvos no `localStorage`
 
-## Tech Stack
+## Stack Tecnologica
 
-| Layer      | Technology                          |
-| ---------- | ----------------------------------- |
-| Structure  | HTML5 (semantic elements)           |
-| Styling    | CSS3 (custom properties, CSS Grid, Flexbox, responsive layout) |
-| Logic      | Vanilla JavaScript (ES2022+)        |
-| Storage    | Web Storage API (`localStorage`)    |
-| IDs        | `crypto.randomUUID()`               |
+| Camada      | Tecnologia |
+| ----------- | ---------- |
+| Estrutura   | HTML5 semantico |
+| Estilos     | CSS3 (variaveis, Grid/Flex e responsividade) |
+| Logica      | JavaScript Vanilla (ES2022+) |
+| Armazenamento | Web Storage API (`localStorage`) |
+| IDs         | `crypto.randomUUID()` |
 
-> Built without any frameworks or build tools — everything runs directly in the browser.
-
-## Project Structure
+## Estrutura do Projeto
 
 ```
-index.html   – app layout and controls
-styles.css   – design system, card UI, theme, and responsive styles
-app.js       – CRUD logic, priority/due-date handling, filters, search, drag-and-drop, i18n, and persistence
+index.html   - estrutura da interface e controles
+styles.css   - estilos, temas e layout responsivo
+app.js       - CRUD, status, prioridade, data limite, filtros, busca, drag-and-drop, i18n e persistencia
 ```
 
-## Run Locally
+## Como Executar
 
-**Option 1 — Open directly**
+Versao online (GitHub Pages): https://mihawkx.github.io/gestao-tarefas/
 
-Open `index.html` in your browser.
+**Opcao 1 - Abrir direto no navegador**
 
-**Option 2 — Local dev server (recommended)**
+Abra `index.html` no navegador.
 
-Using Python:
+**Opcao 2 - Servidor local (recomendado)**
+
+Com Python:
+
 ```bash
 python -m http.server
 ```
-Then open `http://localhost:8000`.
 
-Using Node.js (`npx`):
+Depois, abra `http://localhost:8000`.
+
+Com Node.js (`npx`):
+
 ```bash
 npx serve .
 ```
 
-## Notes
+## Observacoes
 
-- All data lives in the browser. To reset, clear `localStorage` for this site in DevTools.
-- The app is fully offline — no network requests are made at runtime.
+- O aplicativo nao usa backend nem faz requisicoes de rede em runtime.
+- O idioma padrao (sem preferencia salva) e **pt-BR**.
+- O tema padrao (sem preferencia salva) e **escuro**.
+- Para resetar os dados, limpe o `localStorage` desse site no navegador.
 
-## License
+## Licenca
 
-This project is for study and personal use.
+Projeto para estudo e uso pessoal.
